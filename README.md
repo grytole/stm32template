@@ -15,6 +15,31 @@ make
 ```
 
 ### Snippets
+#### System Clock
+```c
+#include <libopencm3/stm32/rcc.h>
+
+void clock_setup(void)
+{
+  /* Source: internal oscillator */
+  rcc_clock_setup_in_hsi_out_64mhz(void);
+  rcc_clock_setup_in_hsi_out_48mhz(void);
+  rcc_clock_setup_in_hsi_out_24mhz(void);
+
+  /* Source: external oscillator (8, 12, 16 or 25 MHz) */
+  rcc_clock_setup_in_hse_8mhz_out_24mhz(void);
+  rcc_clock_setup_in_hse_8mhz_out_72mhz(void);
+  rcc_clock_setup_in_hse_12mhz_out_72mhz(void);
+  rcc_clock_setup_in_hse_16mhz_out_72mhz(void);
+  rcc_clock_setup_in_hse_25mhz_out_72mhz(void);
+
+  /* Peripheral clock frequencies globals (Hz) */
+  uint32_t ahb = rcc_ahb_frequency;
+  uint32_t apb1 = rcc_apb1_frequency;
+  uint32_t apb2 = rcc_apb2_frequency;
+}
+```
+
 #### GPIO
 ```c
 #include <libopencm3/stm32/rcc.h>
@@ -60,7 +85,7 @@ void do_something(void)
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 
-static void clock_setup(void)
+void clock_setup(void)
 {
   rcc_clock_setup_in_hse_8mhz_out_72mhz();
 
@@ -102,6 +127,40 @@ void usart_setup(void)
 void do_something(void)
 {
   usart_send_blocking(USART1, '\r');
+}
+```
+
+#### System Tick
+```c
+#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/cm3/systick.h>
+
+volatile uint64_t ticks_ms = 0;
+
+/* SysTick timer callback */
+void sys_tick_handler(void)
+{
+  ticks_ms++;
+}
+
+void clock_setup(void)
+{
+  rcc_clock_setup_in_hse_8mhz_out_72mhz();
+}
+
+void systick_setup(void)
+{
+  systick_set_clocksource(STK_CSR_CLKSOURCE_AHB);
+  /* 1000Hz --> 1ms */
+  systick_set_frequency(1000, rcc_ahb_frequency);
+  systick_clear();
+  systick_interrupt_enable();
+  systick_counter_enable();
+}
+
+uint64_t ms(void)
+{
+  return ticks_ms;
 }
 ```
 
