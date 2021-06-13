@@ -12,6 +12,7 @@ git submodule add https://github.com/libopencm3/libopencm3.git
 git commit -m "import libopencm3"
 make -C ./libopencm3
 make
+make flash
 ```
 
 ### Snippets
@@ -161,6 +162,44 @@ void systick_setup(void)
 uint64_t ms(void)
 {
   return ticks_ms;
+}
+```
+
+#### External Interrupts
+```c
+#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/gpio.h>
+#include <libopencm3/cm3/nvic.h>
+#include <libopencm3/stm32/exti.h>
+
+void clock_setup(void)
+{
+  rcc_clock_setup_in_hse_8mhz_out_72mhz();
+  rcc_periph_clock_enable(RCC_SYSCFG);
+}
+
+void exti_setup(void)
+{
+  /* EXTI{0 - 4, 9_5, 15_10} */
+  exti_enable_request(EXTI0);
+
+  /* EXTI_TRIGGER_{RISING, FALLING, BOTH} */
+  exti_set_trigger(EXTI0, EXTI_TRIGGER_RISING);
+
+  /* GPIO{A - G} */
+  exti_select_source(EXTI0, GPIOA);
+
+  /* NVIC_EXTI{0 - 4, 9_5, 15_10}_IRQ */
+  nvic_enable_irq(NVIC_EXTI0_IRQ);
+}
+
+/* exti{0 - 4, 9_5, 15_10}_isr */
+void exti0_isr(void)
+{
+  /* EXTI{0 - 4, 9_5, 15_10} */
+  exti_reset_request(EXTI0);
+
+  ...
 }
 ```
 
