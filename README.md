@@ -199,6 +199,81 @@ void exti0_isr(void)
 }
 ```
 
+#### SPI Master
+```c
+#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/spi.h>
+
+void clock_setup(void)
+{
+  rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
+
+  rcc_periph_clock_enable(RCC_GPIOB);
+}
+
+void spi_setup(void)
+{
+  /* RCC_SPI{1 - 3} */
+  rcc_periph_clock_enable(RCC_SPI2);
+
+  /* configure SCK=(PB13), MOSI=(PB15) pins as AF pushpull */
+  gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO13 | GPIO15);
+
+  /* configure MISO=(PB14) pin as floating input or input with pullup */
+  gpio_set_mode(GPIOB, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO14);
+  /* enable internal pullup if required */
+  gpio_set(GPIOB, GPIO14);
+  
+  /* configure NSS as pushpull (or opendrain if there is an external pullup) if required */
+  gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO12);
+  /* NSS should be high when no SPI exchange */
+  gpio_set(GPIOB, GPIO12);
+
+  /* SPI{1-3} */
+  spi_reset(SPI2);
+
+  /* SPI_CR1_BAUDRATE_FPCLK_DIV_{2, 4, 8, 16, 32, 64, 128, 256} */
+  /* SPI_CR1_CPOL_CLK_TO_{0, 1}_WHEN_IDLE */
+  /* SPI_CR1_CPHA_CLK_TRANSITION_{1, 2} */
+  /* SPI_CR1_DFF_{8, 16}BIT */
+  /* SPI_CR1_{MSB, LSB}FIRST */
+  spi_init_master(SPI2,
+                  SPI_CR1_BAUDRATE_FPCLK_DIV_64,
+                  SPI_CR1_CPOL_CLK_TO_1_WHEN_IDLE,
+                  SPI_CR1_CPHA_CLK_TRANSITION_2,
+                  SPI_CR1_DFF_8BIT,
+                  SPI_CR1_MSBFIRST);
+
+  spi_enable_software_slave_management(SPI2);
+  spi_set_nss_high(SPI2);
+
+  spi_enable(SPI2);
+}
+
+void do_something(void)
+{
+  uint16_t tx_value = 0x0042;
+  uint16_t rx_value = 0x0000;
+
+  /* pull NSS low to select a slave device */
+  gpio_clear(GPIOB, GPIO12);
+  /* send to tx register - blocks until tx completed */
+  spi_send(SPI2, tx_value);
+  /* read from rx register - blocks until rx completed */
+  rx_value = spi_read(SPI2);
+  /* pull NSS high to unselect a slave device */
+  gpio_set(GPIOB, GPIO12);
+
+  /* pull NSS low to select a slave device */
+  gpio_clear(GPIOB, GPIO12);
+  /* data exchange - blocks until rx completed */
+  rx_value = spi_xfer(SPI2, tx_value);
+  /* pull NSS high to unselect a slave device */
+  gpio_set(GPIOB, GPIO12);
+}
+```
+
 #### I2C
 ```c
 /* TODO */
