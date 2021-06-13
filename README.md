@@ -23,16 +23,12 @@ make flash
 void clock_setup(void)
 {
   /* Source: internal oscillator */
-  rcc_clock_setup_in_hsi_out_64mhz(void);
-  rcc_clock_setup_in_hsi_out_48mhz(void);
-  rcc_clock_setup_in_hsi_out_24mhz(void);
+  /* RCC_CLOCK_HSI_{24, 48, 64}MHZ */
+  rcc_clock_setup_pll(&rcc_hsi_configs[RCC_CLOCK_HSI_64MHZ]);
 
   /* Source: external oscillator (8, 12, 16 or 25 MHz) */
-  rcc_clock_setup_in_hse_8mhz_out_24mhz(void);
-  rcc_clock_setup_in_hse_8mhz_out_72mhz(void);
-  rcc_clock_setup_in_hse_12mhz_out_72mhz(void);
-  rcc_clock_setup_in_hse_16mhz_out_72mhz(void);
-  rcc_clock_setup_in_hse_25mhz_out_72mhz(void);
+  /* RCC_CLOCK_HSE{8_24, 8_72, 12_72, 16_72, 25_72}MHZ */
+  rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
 
   /* Peripheral clock frequencies globals (Hz) */
   uint32_t ahb = rcc_ahb_frequency;
@@ -48,7 +44,7 @@ void clock_setup(void)
 
 void clock_setup(void)
 {
-  rcc_clock_setup_in_hse_8mhz_out_72mhz();
+  rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
   
   /* RCC_GPIO{A - G} */
   rcc_periph_clock_enable(RCC_GPIOB);
@@ -88,7 +84,7 @@ void do_something(void)
 
 void clock_setup(void)
 {
-  rcc_clock_setup_in_hse_8mhz_out_72mhz();
+  rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
 
   /* RCC_GPIO{A - G} */
   rcc_periph_clock_enable(RCC_GPIOA);
@@ -146,7 +142,7 @@ void sys_tick_handler(void)
 
 void clock_setup(void)
 {
-  rcc_clock_setup_in_hse_8mhz_out_72mhz();
+  rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
 }
 
 void systick_setup(void)
@@ -174,7 +170,7 @@ uint64_t ms(void)
 
 void clock_setup(void)
 {
-  rcc_clock_setup_in_hse_8mhz_out_72mhz();
+  rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
   rcc_periph_clock_enable(RCC_SYSCFG);
 }
 
