@@ -90,7 +90,7 @@ void clock_setup(void)
   rcc_periph_clock_enable(RCC_GPIOA);
 
   /* RCC_USART{1 - 3}, RCC_UART{4 - 5} */
-  rcc_periph_clock_enable(RCC_USART2);
+  rcc_periph_clock_enable(RCC_USART1);
 }
 
 void usart_setup(void)
@@ -171,6 +171,7 @@ uint64_t ms(void)
 void clock_setup(void)
 {
   rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
+
   rcc_periph_clock_enable(RCC_SYSCFG);
 }
 
@@ -209,14 +210,15 @@ void clock_setup(void)
 {
   rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
 
+  /* RCC_GPIO{A - G} */
   rcc_periph_clock_enable(RCC_GPIOB);
+
+  /* RCC_SPI{1 - 3} */
+  rcc_periph_clock_enable(RCC_SPI2);
 }
 
 void spi_setup(void)
 {
-  /* RCC_SPI{1 - 3} */
-  rcc_periph_clock_enable(RCC_SPI2);
-
   /* configure SCK=(PB13), MOSI=(PB15) pins as AF pushpull */
   gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO13 | GPIO15);
 
