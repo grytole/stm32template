@@ -276,6 +276,119 @@ void do_something(void)
 }
 ```
 
+#### CAN
+```c
+#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/can.h>
+#include <libopencm3/cm3/nvic.h>
+
+void clock_setup(void)
+{
+  rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
+
+  /* RCC_GPIO{A - G} */
+  rcc_periph_clock_enable(RCC_GPIOB);
+
+  rcc_periph_clock_enable(RCC_CAN);
+}
+
+void can_setup(void)
+{
+  int32_t result = -1;
+
+  bool ttcm = false; /* Time triggered communication mode */
+  bool abom = true;  /* Automatic bus-off management */
+  bool awum = false; /* Automatic wakeup mode */
+  bool nart = false; /* No automatic retransmission */
+  bool rflm = false; /* Receive FIFO locked mode */
+  bool txfp = false; /* Transmit FIFO priority */
+
+  /* This must be calculated */
+  uint32_t sjw = CAN_BTR_SJW_1TQ; /* Resynchronization time quanta jump width */
+  uint32_t ts1 = CAN_BTR_TS1_3TQ; /* Time segment 1 time quanta width */
+  uint32_t ts2 = CAN_BTR_TS2_4TQ; /* Time segment 2 time quanta width */
+  uint32_t brp = 12;     /* Baud rate prescaler */
+
+  bool loopback = false; /* Loopback mode */
+  bool silent = false;   /* Silent mode */
+
+  /* CAN TX - PA12 (or PB9) */
+  /* GPIO_BANK_{CAN1, CAN1_PB}_TX, GPIO_{CAN1, CAN1_PB}_TX */
+  gpio_set_mode(GPIO_BANK_CAN1_TX, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_CAN1_TX);
+  
+  /* CAN RX - PA11 (or PB8) */
+  /* GPIO_BANK_{CAN1, CAN1_PB}_RX, GPIO_{CAN1, CAN1_PB}_RX */
+  gpio_set_mode(GPIO_BANK_CAN1_RX, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO_CAN1_RX);
+	gpio_set(GPIO_BANK_CAN1_RX, GPIO_CAN1_RX);
+
+  /* Enable interrupt */
+  nvic_enable_irq(NVIC_USB_LP_CAN_RX0_IRQ);
+	nvic_set_priority(NVIC_USB_LP_CAN_RX0_IRQ, 1);
+
+  can_reset(CAN1);
+
+  result = can_init(CAN1, ttcm, abom, awum, nart, rflm, txfp, sjw, ts1, ts2, brp, loopback, silent);
+  if (0 != result)
+  {
+    /* CAN init failed! */
+    return;
+  }
+
+  /* FMPIE0: FIFO message pending interrupt enable */
+  can_enable_irq(CAN1, CAN_IER_FMPIE0);
+}
+
+void do_something(void)
+{
+  int32_t result = -1;
+  bool has_available_mailbox = false;
+
+  uint32_t id = 0x0000; /* Message ID */
+  bool ext = false;     /* Extended ID */
+  bool rtr = false;     /* Request transmit */
+  uint8_t length = 8;   /* Message payload length */
+  uint8_t data[8] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 }; /* Message payload data */
+
+  has_available_mailbox = can_available_mailbox(CAN1);
+  if (has_available_mailbox)
+  {
+    /* There is at least one empty mailbox ready for TX */
+  }
+
+  result = can_transmit(CAN1, id, ext, rtr, length, data);
+  if (-1 == result)
+  {
+    /* No mailbox was available and no transmission got queued! */
+    return;
+  }
+  else
+  {
+    /* result has a number of mailbox used: 0, 1, 2 */
+  }
+}
+
+/* FIFO message pending interrupt */
+void usb_lp_can_rx0_isr(void)
+{
+  uint8_t fifo = 0;     /* FIFO ID */
+  bool release = true;  /* Release the FIFO automatically after coping data out */
+
+  uint32_t id = 0x0000; /* Message ID */
+  bool ext = false;     /* Extended ID */
+  bool rtr = false;     /* Request transmit */
+  uint8_t fmi = 0;      /* ID of the matched filter */
+  uint8_t length = 8;   /* Message payload length */
+  uint8_t data[8] = {}; /* Message payload data */
+  
+  can_receive(CAN1, fifo, release, &id, &ext, &rtr, &fmi, &length, data, NULL);
+
+  ...
+  
+  /* call can_fifo_release(CAN1, fifo) here if release flag of can_receive() was false */
+}
+```
+
 #### I2C
 ```c
 /* TODO */
