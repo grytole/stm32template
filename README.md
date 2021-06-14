@@ -320,11 +320,11 @@ void can_setup(void)
   /* CAN RX - PA11 (or PB8) */
   /* GPIO_BANK_{CAN1, CAN1_PB}_RX, GPIO_{CAN1, CAN1_PB}_RX */
   gpio_set_mode(GPIO_BANK_CAN1_RX, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO_CAN1_RX);
-	gpio_set(GPIO_BANK_CAN1_RX, GPIO_CAN1_RX);
+  gpio_set(GPIO_BANK_CAN1_RX, GPIO_CAN1_RX);
 
   /* Enable interrupt */
   nvic_enable_irq(NVIC_USB_LP_CAN_RX0_IRQ);
-	nvic_set_priority(NVIC_USB_LP_CAN_RX0_IRQ, 1);
+  nvic_set_priority(NVIC_USB_LP_CAN_RX0_IRQ, 1);
 
   can_reset(CAN1);
 
