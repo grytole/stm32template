@@ -303,15 +303,19 @@ void can_setup(void)
   bool nart = false; /* No automatic retransmission */
   bool rflm = false; /* Receive FIFO locked mode */
   bool txfp = false; /* Transmit FIFO priority */
-
   /* This must be calculated */
   uint32_t sjw = CAN_BTR_SJW_1TQ; /* Resynchronization time quanta jump width */
   uint32_t ts1 = CAN_BTR_TS1_3TQ; /* Time segment 1 time quanta width */
   uint32_t ts2 = CAN_BTR_TS2_4TQ; /* Time segment 2 time quanta width */
   uint32_t brp = 12;     /* Baud rate prescaler */
-
   bool loopback = false; /* Loopback mode */
   bool silent = false;   /* Silent mode */
+
+  uint32_t filter_id = 0;    /* ID number of the filter - 0-13 for non-connectivity devices */
+  uint32_t msg_id = 0;       /* Message ID to filter */
+  uint32_t msg_id_mask = 0;  /* Message ID bit mask - 0 bit: don't care; 1 bit: must match with ID */
+  uint32_t fifo_id = 0;      /* FIFO ID - 0:FIFO0, 1:FIFO1 */
+  bool filter_enable = true; /* Enable filter */
 
   /* Remap CAN to PB8/PB9 if needed */
   /* gpio_primary_remap(AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_ON, AFIO_MAPR_CAN1_REMAP_PORTB); */
@@ -337,6 +341,9 @@ void can_setup(void)
     /* CAN init failed! */
     return;
   }
+
+  /* Route all incoming messages to FIFO0 */
+  can_filter_id_mask_32bit_init(filter_id, msg_id, msg_id_mask, fifo_id, filter_enable);
 
   /* FMPIE0: FIFO message pending interrupt enable */
   can_enable_irq(CAN1, CAN_IER_FMPIE0);
