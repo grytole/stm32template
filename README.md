@@ -313,6 +313,9 @@ void can_setup(void)
   bool loopback = false; /* Loopback mode */
   bool silent = false;   /* Silent mode */
 
+  /* Remap CAN to PB8/PB9 if needed */
+  /* gpio_primary_remap(AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_ON, AFIO_MAPR_CAN1_REMAP_PORTB); */
+
   /* CAN TX - PA12 (or PB9) */
   /* GPIO_BANK_{CAN1, CAN1_PB}_TX, GPIO_{CAN1, CAN1_PB}_TX */
   gpio_set_mode(GPIO_BANK_CAN1_TX, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_CAN1_TX);
