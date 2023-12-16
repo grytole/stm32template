@@ -130,6 +130,7 @@ void do_something(void)
 #### System Tick
 ```c
 #include <libopencm3/stm32/rcc.h>
+#include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/systick.h>
 
 volatile uint64_t ticks_ms = 0;
