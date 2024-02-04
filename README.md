@@ -15,6 +15,12 @@ make
 make flash
 ```
 
+### Floats at printf
+Add this to your Makefile (increases binary size for ~10kB)
+```Make
+LDFLAGS = -lc -u _printf_float
+```
+
 ### Snippets
 #### System Clock
 ```c
